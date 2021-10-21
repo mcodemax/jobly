@@ -5,7 +5,7 @@
 const jsonschema = require("jsonschema");
 const express = require("express");
 
-const { BadRequestError } = require("../expressError");
+const { BadRequestError, ExpressError } = require("../expressError");
 const { ensureLoggedIn } = require("../middleware/auth");
 const Company = require("../models/company");
 
@@ -14,6 +14,7 @@ const companyUpdateSchema = require("../schemas/companyUpdate.json");
 
 const router = new express.Router();
 
+const {seeIfObjKeysInArr, seeIfKeysInObj, compareKeys} = require("../helpers/sql")
 
 /** POST / { company } =>  { company }
  *
@@ -50,14 +51,32 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  * Authorization required: none
  */
 
-router.get("/", async function (req, res, next) {
+router.get("/:name?/:minEmployees?/:maxEmployees?", async function (req, res, next) {
   try {
+    const {name} = req.query;
+    const minEmployees = req.query.minEmployees ? parseInt(req.query.minEmployees) : undefined;
+    const maxEmployees = req.query.maxEmployees ? parseInt(req.query.maxEmployees) : undefined;
+
+    //Validate that the request does not contain inappropriate 
+    //other filtering fields in the route. Do the actual filtering in the model.
+    // exmaple query str => ?name=Ayala-Buchanan&minEmployees=55&maxEmployees=100
+    
+    if(minEmployees && maxEmployees){
+      if(minEmployees >= maxEmployees) throw new BadRequestError(`maxEmployees must be greater than minEmployees`);
+    }
+
+    if(!seeIfObjKeysInArr(req.query, ['name','maxEmployees','minEmployees'])){
+      throw new BadRequestError(`A key wasn't allowed here`);
+    }
+
     const companies = await Company.findAll();
     return res.json({ companies });
   } catch (err) {
     return next(err);
   }
 });
+
+
 
 /** GET /[handle]  =>  { company }
  *
