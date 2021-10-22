@@ -49,22 +49,7 @@ class Company {
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll() {
-    const companiesRes = await db.query(
-          `SELECT handle,
-                  name,
-                  description,
-                  num_employees AS "numEmployees",
-                  logo_url AS "logoUrl"
-           FROM companies
-           ORDER BY name`);
-    return companiesRes.rows;
-  }
-
-  /**
-   * Find certain companies by passing in an obj with name, minEmployees, and maxEmployees
-   */
-  static async find({name, minEmployees, maxEmployees}) {
+  static async findAll({name, minEmployees, maxEmployees}) {
     let sqlWhereStr = ``;
     let values = [];
 
@@ -76,7 +61,7 @@ class Company {
     if(minEmployees){
       values.push(minEmployees);
       if(values.length > 1){
-        sqlWhereStr = sqlWhereStr.concat(` AND num_employees > $${values.length}`)
+        sqlWhereStr = sqlWhereStr.concat(` AND num_employees >= $${values.length}`)
       }else{//if minEmployees is filtered for but not name
         sqlWhereStr = sqlWhereStr.concat(`WHERE num_employees >= $${values.length}`)
       }
@@ -85,7 +70,7 @@ class Company {
     if(maxEmployees){
       values.push(maxEmployees);
       if(values.length > 1){
-        sqlWhereStr = sqlWhereStr.concat(` AND num_employees > $${values.length}`)
+        sqlWhereStr = sqlWhereStr.concat(` AND num_employees <= $${values.length}`)
       }else{//if maxEmployees is the only criteria filtered for
         sqlWhereStr = sqlWhereStr.concat(`WHERE num_employees <= $${values.length}`)
       }
@@ -100,8 +85,9 @@ class Company {
                         ${sqlWhereStr}  
                         ORDER BY name`;                        
 
-    const result = await db.query(querySql, [...values]);
-    return result.rows;
+    
+    const companiesRes = await db.query(querySql, values);
+    return companiesRes.rows;
   }
 
   /** Given a company handle, return data about company.

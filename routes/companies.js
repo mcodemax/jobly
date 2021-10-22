@@ -72,7 +72,7 @@ router.get("/:name?/:minEmployees?/:maxEmployees?", async function (req, res, ne
     
     //in pg AS uses "" and WHERE uses ''
 
-    const companies = await Company.findAll();
+    const companies = await Company.findAll({name, minEmployees, maxEmployees});
     return res.json({ companies });
   } catch (err) {
     return next(err);
