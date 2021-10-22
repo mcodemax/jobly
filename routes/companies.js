@@ -61,13 +61,16 @@ router.get("/:name?/:minEmployees?/:maxEmployees?", async function (req, res, ne
     //other filtering fields in the route. Do the actual filtering in the model.
     // exmaple query str => ?name=Ayala-Buchanan&minEmployees=55&maxEmployees=100
     
-    if(minEmployees && maxEmployees){
-      if(minEmployees >= maxEmployees) throw new BadRequestError(`maxEmployees must be greater than minEmployees`);
+    if(minEmployees && maxEmployees && (minEmployees >= maxEmployees)){
+      throw new BadRequestError(`maxEmployees must be greater than minEmployees`);
     }
 
     if(!seeIfObjKeysInArr(req.query, ['name','maxEmployees','minEmployees'])){
       throw new BadRequestError(`A key wasn't allowed here`);
     }
+
+    
+    //in pg AS uses "" and WHERE uses ''
 
     const companies = await Company.findAll();
     return res.json({ companies });
