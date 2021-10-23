@@ -6,7 +6,7 @@ const jsonschema = require("jsonschema");
 const express = require("express");
 
 const { BadRequestError, ExpressError } = require("../expressError");
-const { ensureLoggedIn } = require("../middleware/auth");
+const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth");
 const Company = require("../models/company");
 
 const companyNewSchema = require("../schemas/companyNew.json");
@@ -25,7 +25,7 @@ const {seeIfObjKeysInArr, seeIfKeysInObj, compareKeys} = require("../helpers/sql
  * Authorization required: login
  */
 
-router.post("/", ensureLoggedIn, async function (req, res, next) {
+router.post("/", ensureAdmin, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, companyNewSchema);
     if (!validator.valid) {
@@ -57,10 +57,8 @@ router.get("/:name?/:minEmployees?/:maxEmployees?", async function (req, res, ne
     const minEmployees = req.query.minEmployees ? parseInt(req.query.minEmployees) : undefined;
     const maxEmployees = req.query.maxEmployees ? parseInt(req.query.maxEmployees) : undefined;
 
-    //Validate that the request does not contain inappropriate 
-    //other filtering fields in the route. Do the actual filtering in the model.
     // exmaple query str => ?name=Ayala-Buchanan&minEmployees=55&maxEmployees=100
-    
+    console.log({name, minEmployees, maxEmployees})
     if(minEmployees && maxEmployees && (minEmployees >= maxEmployees)){
       throw new BadRequestError(`maxEmployees must be greater than minEmployees`);
     }
@@ -69,10 +67,10 @@ router.get("/:name?/:minEmployees?/:maxEmployees?", async function (req, res, ne
       throw new BadRequestError(`A key wasn't allowed here`);
     }
 
-    
-    //in pg AS uses "" and WHERE uses ''
-
     const companies = await Company.findAll({name, minEmployees, maxEmployees});
+
+    if(companies.length === 0) throw new ExpressError('Companies not found', 404)
+    
     return res.json({ companies });
   } catch (err) {
     return next(err);

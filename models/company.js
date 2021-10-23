@@ -84,7 +84,7 @@ class Company {
                         FROM companies
                         ${sqlWhereStr}  
                         ORDER BY name`;
-    
+    //in pg AS uses "" and WHERE uses ''
     const companiesRes = await db.query(querySql, values);
     return companiesRes.rows;
   }

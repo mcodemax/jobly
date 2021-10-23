@@ -4,7 +4,7 @@
 
 const jwt = require("jsonwebtoken");
 const { SECRET_KEY } = require("../config");
-const { UnauthorizedError } = require("../expressError");
+const { UnauthorizedError, ExpressError } = require("../expressError");
 
 
 /** Middleware: Authenticate user.
@@ -17,10 +17,12 @@ const { UnauthorizedError } = require("../expressError");
 
 function authenticateJWT(req, res, next) {
   try {
-    const authHeader = req.headers && req.headers.authorization;
+    const authHeader = req.headers && req.headers.authorization; //I don't know what this is doing where is headers and headers.authorization coming from
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
+    
     if (authHeader) {
       const token = authHeader.replace(/^[Bb]earer /, "").trim();
-      res.locals.user = jwt.verify(token, SECRET_KEY);
+      res.locals.user = jwt.verify(token, SECRET_KEY); //returns the payload if valid
     }
     return next();
   } catch (err) {
@@ -42,8 +44,20 @@ function ensureLoggedIn(req, res, next) {
   }
 }
 
+/** Middle wear to ensure user is Admin to make a post */
+function ensureAdmin(req, res, next) {
+  try {
+    if(res.locals.user.isAdmin === false){ //ref /routes/auth.js 
+      throw new UnauthorizedError('Need to be admin to use this route');
+    }
+    next();
+  } catch (error) {
+    return next(error);
+  }
+}
 
 module.exports = {
   authenticateJWT,
   ensureLoggedIn,
+  ensureAdmin
 };

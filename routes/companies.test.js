@@ -11,6 +11,7 @@ const {
   commonAfterEach,
   commonAfterAll,
   u1Token,
+  adminToken
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -33,7 +34,7 @@ describe("POST /companies", function () {
     const resp = await request(app)
         .post("/companies")
         .send(newCompany)
-        .set("authorization", `Bearer ${u1Token}`);
+        .set("authorization", `Bearer ${adminToken}`); 
     expect(resp.statusCode).toEqual(201);
     expect(resp.body).toEqual({
       company: newCompany,
@@ -47,7 +48,7 @@ describe("POST /companies", function () {
           handle: "new",
           numEmployees: 10,
         })
-        .set("authorization", `Bearer ${u1Token}`);
+        .set("authorization", `Bearer ${adminToken}`); //https://davidburgos.blog/authenticated-requests-supertest/
     expect(resp.statusCode).toEqual(400);
   });
 
@@ -58,7 +59,7 @@ describe("POST /companies", function () {
           ...newCompany,
           logoUrl: "not-a-url",
         })
-        .set("authorization", `Bearer ${u1Token}`);
+        .set("authorization", `Bearer ${adminToken}`);
     expect(resp.statusCode).toEqual(400);
   });
 });
@@ -112,33 +113,35 @@ describe("GET /companies", function () {
 
 describe("GET /companies/:handle", function () {
   test("works for anon", async function () {
-    const resp = await request(app).get(`/companies/c1`);
+    const resp = await request(app).get(`/companies?name=c1`);
+    console.log(resp.body)
     expect(resp.body).toEqual({
-      company: {
+      companies: [{
         handle: "c1",
         name: "C1",
         description: "Desc1",
         numEmployees: 1,
         logoUrl: "http://c1.img",
       },
+      ]
     });
   });
 
   test("works for anon: company w/o jobs", async function () {
-    const resp = await request(app).get(`/companies/c2`);
+    const resp = await request(app).get(`/companies?name=c2`);
     expect(resp.body).toEqual({
-      company: {
+      companies: [{
         handle: "c2",
         name: "C2",
         description: "Desc2",
         numEmployees: 2,
         logoUrl: "http://c2.img",
-      },
+      }],
     });
   });
 
   test("not found for no such company", async function () {
-    const resp = await request(app).get(`/companies/nope`);
+    const resp = await request(app).get(`/companies?name=nope`);
     expect(resp.statusCode).toEqual(404);
   });
 });
