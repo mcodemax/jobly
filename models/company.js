@@ -54,7 +54,7 @@ class Company {
     let values = [];
 
     if(name){
-      values.push(name);
+      values.push(`%${name}%`);
       sqlWhereStr = sqlWhereStr.concat(`WHERE name ILIKE $${values.length}`);
     }//values.length will be the index to be used in sql by node pg
 
@@ -83,8 +83,7 @@ class Company {
                             logo_url AS "logoUrl"
                         FROM companies
                         ${sqlWhereStr}  
-                        ORDER BY name`;                        
-
+                        ORDER BY name`;
     
     const companiesRes = await db.query(querySql, values);
     return companiesRes.rows;
