@@ -48,11 +48,11 @@ function ensureLoggedIn(req, res, next) {
 function ensureAdmin(req, res, next) {
   try {
     if(res.locals.user.isAdmin === false){ //ref /routes/auth.js 
-      throw new UnauthorizedError('Need to be admin to use this route');
+      throw new Error;
     }
     next();
   } catch (error) {
-    return next(error);
+    return next(new UnauthorizedError('Need to be admin to use this route'));
   }
 }
 

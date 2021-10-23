@@ -58,7 +58,7 @@ router.get("/:name?/:minEmployees?/:maxEmployees?", async function (req, res, ne
     const maxEmployees = req.query.maxEmployees ? parseInt(req.query.maxEmployees) : undefined;
 
     // exmaple query str => ?name=Ayala-Buchanan&minEmployees=55&maxEmployees=100
-    console.log({name, minEmployees, maxEmployees})
+    
     if(minEmployees && maxEmployees && (minEmployees >= maxEmployees)){
       throw new BadRequestError(`maxEmployees must be greater than minEmployees`);
     }
@@ -107,8 +107,9 @@ router.get("/:handle", async function (req, res, next) {
  * Authorization required: login
  */
 
-router.patch("/:handle", ensureLoggedIn, async function (req, res, next) {
+router.patch("/:handle", ensureAdmin, async function (req, res, next) {
   try {
+    
     const validator = jsonschema.validate(req.body, companyUpdateSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
@@ -127,7 +128,7 @@ router.patch("/:handle", ensureLoggedIn, async function (req, res, next) {
  * Authorization: login
  */
 
-router.delete("/:handle", ensureLoggedIn, async function (req, res, next) {
+router.delete("/:handle", ensureAdmin, async function (req, res, next) {
   try {
     await Company.remove(req.params.handle);
     return res.json({ deleted: req.params.handle });
