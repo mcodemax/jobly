@@ -65,10 +65,14 @@ function ensureAdminOrCorrectUser(req, res, next){
   try {
     const user = res.locals.user; //make sure this is res not req; doesn't make sense to make this the request
     
-    if(!user || !(req.params.username === user.username)) throw new UnauthorizedError('Need to be admin or requested user to use this route');
+    //how this inequality works?
+    if(!(user && (user.isAdmin || user.username === req.params.username))){
+      // console.log(req.params.username, user.username) //why throws 500 error
+      throw new UnauthorizedError('Need to be admin or requested user to use this route');
+    }
 
     return next();
-  } catch (error) {
+  } catch (error) { 
     return next(error);
   }
 }

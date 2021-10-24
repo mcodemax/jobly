@@ -136,7 +136,7 @@ class User {
     );
 
     const user = userRes.rows[0];
-
+      console.log(user)
     if (!user) throw new NotFoundError(`No user: ${username}`);
 
     return user;
