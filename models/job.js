@@ -3,44 +3,40 @@
 const db = require("../db");
 const { BadRequestError, NotFoundError } = require("../expressError");
 const { sqlForPartialUpdate } = require("../helpers/sql");
+const Company = require("./company");
 
 /** Related functions for companies. */
 
 class Job {
   /** Create a job (from data), update db, return new job data.
    *
-   * data should be { title, salary, equity, company_handle }
+   * data should be { title, salary, equity, companyHandle }
    *
-   * Returns { id, title, salary, equity, company_handle }
+   * Returns { id, title, salary, equity, companyHandle }
    *
    * Throws BadRequestError if equity > 1.0 or salary < 0, psql might have errors built in.
    * 
-   * I e.g.: { "title":"Chill Yob", "salary":"188800", "equity":"1", "company_handle":"hall-davis" }
+   * I e.g.: { "title":"Chill Yob", "salary":"188800", "equity":"1", "companyHandle":"hall-davis" }
    * */
-  static async create({ handle, name, description, numEmployees, logoUrl }) {
-    const duplicateCheck = await db.query(
-          `SELECT handle
-           FROM companies
-           WHERE handle = $1`,
-        [handle]);
+  static async create({ title, salary, equity, companyHandle }) {
+    await Company.get(companyHandle); //throws err if company doesn't exist
 
-    if (duplicateCheck.rows[0])
-      throw new BadRequestError(`Duplicate company: ${handle}`);
+      // throw new BadRequestError(`Duplicate company: ${handle}`);
 
     const result = await db.query(
-          `INSERT INTO companies
-           (handle, name, description, num_employees, logo_url)
-           VALUES ($1, $2, $3, $4, $5)
-           RETURNING handle, name, description, num_employees AS "numEmployees", logo_url AS "logoUrl"`,
+          `INSERT INTO jobs
+           (title, salary, equity, company_handle)
+           VALUES ($1, $2, $3, $4)
+           RETURNING title, salary, equity, company_handle AS "companyHandle"`,
         [
-          handle,
-          name,
-          description,
-          numEmployees,
-          logoUrl,
+          title, 
+          salary,
+          equity,
+          companyHandle
         ],
     );
     const company = result.rows[0];
+    company.equity = Number(company.equity);
 
     return company;
   }
@@ -54,65 +50,81 @@ class Job {
     let sqlWhereStr = ``;
     let values = [];
 
-    if(name){
-      values.push(`%${name}%`);
-      sqlWhereStr = sqlWhereStr.concat(`WHERE name ILIKE $${values.length}`);
-    }//values.length will be the index to be used in sql by node pg
+    if(title){
+      values.push(`%${title}%`);
+      sqlWhereStr = sqlWhereStr.concat(`WHERE title ILIKE $${values.length}`);
+    }
 
-    if(minEmployees){
-      values.push(minEmployees);
-      if(values.length > 1){
-        sqlWhereStr = sqlWhereStr.concat(` AND num_employees >= $${values.length}`)
-      }else{//if minEmployees is filtered for but not name
-        sqlWhereStr = sqlWhereStr.concat(`WHERE num_employees >= $${values.length}`)
+    if(minSalary){
+      values.push(minSalary);
+      if(values.length > 1){ //values.length will be the index to be used in sql by node pg
+        sqlWhereStr = sqlWhereStr.concat(` AND salary >= $${values.length}`);
+      }else{//if minSalary is filtered for but not name
+        sqlWhereStr = sqlWhereStr.concat(`WHERE salary >= $${values.length}`);
       }
     }
 
-    if(maxEmployees){
-      values.push(maxEmployees);
-      if(values.length > 1){
-        sqlWhereStr = sqlWhereStr.concat(` AND num_employees <= $${values.length}`)
-      }else{//if maxEmployees is the only criteria filtered for
-        sqlWhereStr = sqlWhereStr.concat(`WHERE num_employees <= $${values.length}`)
+    const obj = {poop: false}
+
+    if(hasEquity && (hasEquity === true)){
+      //if true, filter to jobs that provide a non-zero amount of equity. 
+      if(values.length > 0){
+        sqlWhereStr = sqlWhereStr.concat(` AND equity > 0`);
+      }else{//if hasEquity is the only criteria filtered for
+        console.log('------------------')
+        sqlWhereStr = sqlWhereStr.concat(`WHERE equity > 0`);
       }
+      // If false or not included in the filtering, list all jobs regardless of equity
     }
 
-    const querySql = `SELECT handle,
-                            name,
-                            description,
-                            num_employees AS "numEmployees",
-                            logo_url AS "logoUrl"
-                        FROM companies
+    const querySql = `SELECT id,
+                            title,
+                            salary,
+                            equity,
+                            company_handle AS "companyHandle"
+                        FROM jobs
                         ${sqlWhereStr}  
-                        ORDER BY name`;
+                        ORDER BY title`;
+
+                      console.log(querySql, values)
     //in pg AS uses "" and WHERE uses ''
-    const companiesRes = await db.query(querySql, values);
-    return companiesRes.rows;
+    const jobsRes = await db.query(querySql, values);
+    const jobs = jobsRes.rows;
+
+    if (jobs.length === 0) throw new NotFoundError(`No jobs found`);
+    
+    jobs.forEach(job => {
+      job.equity = Number(job.equity); 
+    });
+
+    return jobs;
   }
 
   /** Given a job id (or title??? its not unique tho to the job), return data about job.
    *
-   * Returns { id, title, salary, equity, company_handle }
+   * Returns { id, title, salary, equity, companyHandle }
    *
    * Throws NotFoundError if not found.
    **/
 
-  static async get(handle) {
+  static async get(id) {
     const companyRes = await db.query(
-          `SELECT handle,
-                  name,
-                  description,
-                  num_employees AS "numEmployees",
-                  logo_url AS "logoUrl"
-           FROM companies
-           WHERE handle = $1`,
-        [handle]);
+          `SELECT id, 
+                  title, 
+                  salary, 
+                  equity,
+                  company_handle AS "companyHandle"
+           FROM jobs
+           WHERE id = $1`,
+        [id]);
 
-    const company = companyRes.rows[0];
+    const job = companyRes.rows[0];
 
-    if (!company) throw new NotFoundError(`No company: ${handle}`);
+    if (!job) throw new NotFoundError(`No job: ${id}`);
 
-    return company;
+    job.equity = Number(job.equity);
+    
+    return job;
   }
 
   /** Update job data with `data`.

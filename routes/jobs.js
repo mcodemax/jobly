@@ -56,7 +56,7 @@ router.get("/:title?/:minSalary?/:hasEquity?", async function (req, res, next) {
     const {title} = req.query;
     const minSalary = req.query.minSalary ? Number(req.query.minSalary) : undefined;
     let hasEquity;
-	const filterObj = {};
+	  const filterObj = {};
 
 	if(!(hasEquity.toLowerCase() === 'true' || hasEquity.toLowerCase() === 'false')) throw new BadRequestError(`hasEquity must be true or false if wanted`);
 	

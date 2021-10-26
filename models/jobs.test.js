@@ -15,6 +15,163 @@ beforeEach(commonBeforeEach);
 afterEach(commonAfterEach);
 afterAll(commonAfterAll);
 
+
+/************************************** findAll */
+
+describe("findAll", function () {
+    test("works: no filter", async function () {
+      let jobs = await Job.findAll({});
+      console.log(jobs)
+      expect(jobs.length).toBe(4);
+    });
+  
+    test("works: filter by c in company name", async function () {
+      let jobs = await Job.findAll({name: "c"});
+      expect(jobs).toEqual([
+        {
+          handle: "c1",
+          name: "C1",
+          description: "Desc1",
+          numEmployees: 1,
+          logoUrl: "http://c1.img",
+        },
+        {
+          handle: "c2",
+          name: "C2",
+          description: "Desc2",
+          numEmployees: 2,
+          logoUrl: "http://c2.img",
+        },
+        {
+          handle: "c3",
+          name: "C3",
+          description: "Desc3",
+          numEmployees: 3,
+          logoUrl: "http://c3.img",
+        },
+      ]);
+    });
+  
+    test("works: filter by 2 in company name", async function () {
+      let jobs = await Job.findAll({name: '2'});
+      expect(jobs).toEqual([
+        {
+          handle: "c2",
+          name: "C2",
+          description: "Desc2",
+          numEmployees: 2,
+          logoUrl: "http://c2.img",
+        }
+      ]);
+    });
+  
+    test("works: filter by at least 2 employees and has 2 in name", async function () {
+      let jobs = await Job.findAll({name: '2', minEmployees: 2});
+      expect(jobs).toEqual([
+        {
+          handle: "c2",
+          name: "C2",
+          description: "Desc2",
+          numEmployees: 2,
+          logoUrl: "http://c2.img",
+        }
+      ]);
+    });
+  
+    test("works: filter by at least 2 employees and has c in name", async function () {
+      let jobs = await Job.findAll({name: 'c', minEmployees: 2});
+      expect(jobs).toEqual([
+        {
+          handle: "c2",
+          name: "C2",
+          description: "Desc2",
+          numEmployees: 2,
+          logoUrl: "http://c2.img",
+        },
+        {
+          handle: "c3",
+          name: "C3",
+          description: "Desc3",
+          numEmployees: 3,
+          logoUrl: "http://c3.img",
+        }
+      ]);
+    });
+  
+    test("works: filter by at most 2 employees and has c in name", async function () {
+      let jobs = await Job.findAll({name: 'c', maxEmployees: 2});
+      expect(jobs).toEqual([
+        {
+          handle: "c1",
+          name: "C1",
+          description: "Desc1",
+          numEmployees: 1,
+          logoUrl: "http://c1.img",
+        },
+        {
+          handle: "c2",
+          name: "C2",
+          description: "Desc2",
+          numEmployees: 2,
+          logoUrl: "http://c2.img",
+        }
+      ]);
+    });
+  
+    test("works: filter by 2 to 3 employees and has c in name", async function () {
+      let jobs = await Job.findAll({name: 'c', minEmployees: 2, maxEmployees: 3});
+      
+      expect(jobs).toEqual([
+        {
+          handle: "c2",
+          name: "C2",
+          description: "Desc2",
+          numEmployees: 2,
+          logoUrl: "http://c2.img",
+        },
+        {
+          handle: "c3",
+          name: "C3",
+          description: "Desc3",
+          numEmployees: 3,
+          logoUrl: "http://c3.img",
+        }
+      ]);
+    });
+  
+    test("works: finds nothing", async function () {
+      let jobs = await Job.findAll({name: 'pl', minEmployees: 2});
+      expect(jobs).toEqual([
+        
+      ]);
+    });
+});
+
+/************************************** get */
+
+describe("get", function () {
+    test("works", async function () {
+        let job = await Job.get(1);
+        expect(job).toEqual({
+        id: 1,
+        title: "Conservator, furniture",
+        salary: 110000,
+        equity: 0,
+        companyHandle: "c1"
+        });
+    });
+
+    test("not found if no such job", async function () {
+        try {
+        await Job.get(555);
+        fail();
+        } catch (err) {
+        expect(err instanceof NotFoundError).toBeTruthy();
+        }
+    });
+});
+  
+
 /************************************** update */
 
 describe("update", function () {
