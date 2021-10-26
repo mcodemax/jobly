@@ -58,30 +58,30 @@ router.get("/:title?/:minSalary?/:hasEquity?", async function (req, res, next) {
     let hasEquity;
 	  const filterObj = {};
 
-	if(!(hasEquity.toLowerCase() === 'true' || hasEquity.toLowerCase() === 'false')) throw new BadRequestError(`hasEquity must be true or false if wanted`);
-	
-	if(req.query.hasEquity && (req.query.hasEquity.toLowerCase() === 'true' || req.query.hasEquity.toLowerCase() === 'false'){
-		hasEquity = req.query.hasEquity.toLowerCase();
-		
-		//hasEquity: if true, filter to jobs that provide a non-zero amount of equity. If false or not included in the filtering, list all jobs regardless of equity.
-		if(hasEquity === true) filterObj.hasEquity = hasEquity;
-	}
-    // example query str => ?title=construction&minSalary=55000&hasEquity=true
+    if(hasEquity && !(hasEquity.toLowerCase() === 'true' || hasEquity.toLowerCase() === 'false')) throw new BadRequestError(`hasEquity must be true or false if wanted`);
     
-  if(minSalary < 0){//test if minSalary undefined?
-    throw new BadRequestError(`minSalary must be >= 0`);
-  }
+    if(req.query.hasEquity && (req.query.hasEquity.toLowerCase() === 'true' || req.query.hasEquity.toLowerCase() === 'false')){
+      hasEquity = req.query.hasEquity.toLowerCase();
+      
+      //hasEquity: if true, filter to jobs that provide a non-zero amount of equity. If false or not included in the filtering, list all jobs regardless of equity.
+      if(hasEquity === true) filterObj.hasEquity = hasEquity;
+    }
+      // example query str => ?title=construction&minSalary=55000&hasEquity=true
+      
+    if(minSalary < 0){//test if minSalary undefined?
+      throw new BadRequestError(`minSalary must be >= 0`);
+    }
 
 
-  if(!seeIfObjKeysInArr(req.query, ['title','minSalary','hasEquity'])){
-    throw new BadRequestError(`A key wasn't allowed here`);
-  }
+    if(!seeIfObjKeysInArr(req.query, ['title','minSalary','hasEquity'])){
+      throw new BadRequestError(`A key wasn't allowed here`);
+    }
 
-  const jobs = await Job.findAll({title, minSalary, hasEquity});
+    const jobs = await Job.findAll({title, minSalary, hasEquity});
 
-  if(jobs.length === 0) throw new ExpressError('Companies not found', 404)
-  
-  return res.json({ companies });
+    if(jobs.length === 0) throw new ExpressError('Companies not found', 404)
+    
+    return res.json({ jobs });
   } catch (err) {
     return next(err);
   }
@@ -96,7 +96,7 @@ router.get("/:title?/:minSalary?/:hasEquity?", async function (req, res, next) {
  *
  * Authorization required: none
  */
-router.get("/:handle", async function (req, res, next) {
+router.get("/:id", async function (req, res, next) {
   try {
     const job = await Job.get(req.params.id);
     return res.json({ job });
@@ -120,7 +120,7 @@ router.get("/:handle", async function (req, res, next) {
 router.patch("/:id", ensureAdmin, async function (req, res, next) {
   try {
     
-    const validator = jsonschema.validate(req.body, jobUpdateSchema);
+    const validator = jsonschema.validate(req.body, JobUpdateSchema);
     if (!validator.valid) {
       const errs = validator.errors.map(e => e.stack);
       throw new BadRequestError(errs);

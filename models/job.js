@@ -27,7 +27,7 @@ class Job {
           `INSERT INTO jobs
            (title, salary, equity, company_handle)
            VALUES ($1, $2, $3, $4)
-           RETURNING title, salary, equity, company_handle AS "companyHandle"`,
+           RETURNING id, title, salary, equity, company_handle AS "companyHandle"`,
         [
           title, 
           salary,
@@ -35,10 +35,10 @@ class Job {
           companyHandle
         ],
     );
-    const company = result.rows[0];
-    company.equity = Number(company.equity);
+    const job = result.rows[0];
+    job.equity = Number(job.equity);
 
-    return company;
+    return job;
   }
 
   /** Find all jobs.
@@ -89,8 +89,6 @@ class Job {
     //in pg AS uses "" and WHERE uses ''
     const jobsRes = await db.query(querySql, values);
     const jobs = jobsRes.rows;
-
-    if (jobs.length === 0) return ['No Jobs Found'];
     
     jobs.forEach(job => {
       job.equity = Number(job.equity); 

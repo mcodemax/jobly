@@ -10,14 +10,14 @@
             "title": "Construction",
             "salary": 100000,
             "equity": 0.12515,
-            "company_handle": "hunter-inc"
+            "companyHandle": "hunter-inc"
         }
     ],
     "required": [
         "title",
         "salary",
         "equity",
-        "company_handle"
+        "companyHandle"
     ],
     "properties": {
         "title": {
@@ -53,15 +53,15 @@
             "minimum": 0,
             "type": "number"
         },
-        "company_handle": {
-            "$id": "#/properties/company_handle",
+        "companyHandle": {
+            "$id": "#/properties/companyHandle",
             "default": "",
             "description": "An explanation about the purpose of this instance.",
             "examples": [
                 "hunter-inc"
             ],
             "maxLength": 25,
-            "title": "The company_handle schema",
+            "title": "The companyHandle schema",
             "type": "string"
         }
     },

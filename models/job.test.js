@@ -113,7 +113,7 @@ describe("findAll", function () {
     test("works: finds nothing", async function () {
       let jobs = await Job.findAll({title: 'awoioiwa2pl', minSalary: 2});
       expect(jobs).toEqual([
-        'No Jobs Found'
+        
       ]);
     });
 });
