@@ -1,0 +1,69 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "The root schema",
+    "description": "The root schema comprises the entire JSON document.",
+    "default": {},
+    "examples": [
+        {
+            "title": "Construction",
+            "salary": 100000,
+            "equity": 0.12515,
+            "company_handle": "hunter-inc"
+        }
+    ],
+    "required": [
+        "title",
+        "salary",
+        "equity",
+        "company_handle"
+    ],
+    "properties": {
+        "title": {
+            "$id": "#/properties/title",
+            "type": "string",
+            "title": "The title schema",
+            "description": "An explanation about the purpose of this instance.",
+            "default": "",
+            "examples": [
+                "Construction"
+            ]
+        },
+        "salary": {
+            "$id": "#/properties/salary",
+            "default": 0,
+            "description": "An explanation about the purpose of this instance.",
+            "examples": [
+                100000
+            ],
+            "minimum": 0,
+            "title": "The salary schema",
+            "type": "integer"
+        },
+        "equity": {
+            "$id": "#/properties/equity",
+            "default": 0.0,
+            "description": "An explanation about the purpose of this instance.",
+            "examples": [
+                0.12515
+            ],
+            "title": "The equity schema",
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+        },
+        "company_handle": {
+            "$id": "#/properties/company_handle",
+            "default": "",
+            "description": "An explanation about the purpose of this instance.",
+            "examples": [
+                "hunter-inc"
+            ],
+            "maxLength": 25,
+            "title": "The company_handle schema",
+            "type": "string"
+        }
+    },
+    "additionalProperties": true
+}

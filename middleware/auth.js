@@ -22,7 +22,7 @@ function authenticateJWT(req, res, next) {
     //https://stackoverflow.com/questions/3163407/javascript-and-operator-within-assignment
     // console.log(authHeader)
     if (authHeader) {
-      const token = authHeader.replace(/^[Bb]earer /, "").trim();
+      const token = authHeader.replace(/^[Bb]earer /, "").trim(); //removes whitespace from both ends of a string
       // console.log(token)
       res.locals.user = jwt.verify(token, SECRET_KEY); //returns the payload if valid
       // console.log(res.locals.user)
@@ -65,7 +65,14 @@ function ensureAdminOrCorrectUser(req, res, next){
   try {
     const user = res.locals.user; //make sure this is res not req; doesn't make sense to make this the request
     
-    //how this inequality works?
+    //how this inequality works:
+    // !user && !(user.isAdmin || user.username === req.params.username)
+    //for the above, the compiler is evaluating the !user statement first then 
+    //continuing immediately
+
+    //compared to the below it evaluates everything in the parens first before taking
+    // in account the ! nested on the outside
+
     if(!(user && (user.isAdmin || user.username === req.params.username))){
       // console.log(req.params.username, user.username) //why throws 500 error
       throw new UnauthorizedError('Need to be admin or requested user to use this route');
