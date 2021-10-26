@@ -15,134 +15,105 @@ beforeEach(commonBeforeEach);
 afterEach(commonAfterEach);
 afterAll(commonAfterAll);
 
+/************************************** create */
+
+describe("create", function () {
+    const newJob = {
+        title: 'New Yobby Job',
+        salary: 5000000, 
+        equity: .512, 
+        companyHandle: 'c3'
+    };
+  
+    test("works", async function () {
+      let job = await Job.create(newJob);
+      expect(job).toEqual(newJob);
+    });
+  
+    test("bad request with nonexistant company", async function () {
+        const newJob2 = {...newJob};
+        newJob2.companyHandle = 'not here';
+        try {
+            await Company.create(newJob2);
+            fail();
+        } catch (err) {
+            expect(err instanceof Error).toBeTruthy();
+        }
+    });
+});
+  
 
 /************************************** findAll */
 
 describe("findAll", function () {
     test("works: no filter", async function () {
       let jobs = await Job.findAll({});
-      console.log(jobs)
       expect(jobs.length).toBe(4);
     });
   
-    test("works: filter by c in company name", async function () {
-      let jobs = await Job.findAll({name: "c"});
+    test("works: filter by civil in job name", async function () {
+      let jobs = await Job.findAll({title: "civil"});
       expect(jobs).toEqual([
         {
-          handle: "c1",
-          name: "C1",
-          description: "Desc1",
-          numEmployees: 1,
-          logoUrl: "http://c1.img",
-        },
-        {
-          handle: "c2",
-          name: "C2",
-          description: "Desc2",
-          numEmployees: 2,
-          logoUrl: "http://c2.img",
-        },
-        {
-          handle: "c3",
-          name: "C3",
-          description: "Desc3",
-          numEmployees: 3,
-          logoUrl: "http://c3.img",
-        },
-      ]);
-    });
-  
-    test("works: filter by 2 in company name", async function () {
-      let jobs = await Job.findAll({name: '2'});
-      expect(jobs).toEqual([
-        {
-          handle: "c2",
-          name: "C2",
-          description: "Desc2",
-          numEmployees: 2,
-          logoUrl: "http://c2.img",
+          id: 3,
+          title: 'Consulting civil engineer',
+          salary: 60000, 
+          equity: 0, 
+          companyHandle: 'c2'
         }
       ]);
     });
   
-    test("works: filter by at least 2 employees and has 2 in name", async function () {
-      let jobs = await Job.findAll({name: '2', minEmployees: 2});
+    test("works: filter by 200000 salary", async function () {
+      let jobs = await Job.findAll({minSalary: 200000});
       expect(jobs).toEqual([
-        {
-          handle: "c2",
-          name: "C2",
-          description: "Desc2",
-          numEmployees: 2,
-          logoUrl: "http://c2.img",
+      {
+            id: 2,
+            title: 'Information officer',
+            salary: 200000, 
+            equity: 1, 
+            companyHandle: 'c2'
         }
       ]);
     });
   
-    test("works: filter by at least 2 employees and has c in name", async function () {
-      let jobs = await Job.findAll({name: 'c', minEmployees: 2});
+    test("works: filter by true hasEquity", async function () {
+        let jobs = await Job.findAll({hasEquity: true});
+        expect(jobs).toEqual([
+        {
+            id: 2,
+            title: 'Information officer',
+            salary: 200000, 
+            equity: 1, 
+            companyHandle: 'c2'
+        }
+        ]);
+    });
+  
+    test("works: filter by 100000 salary, hasEquity is false", async function () {
+      let jobs = await Job.findAll({minSalary: 100000, hasEquity: false});
       expect(jobs).toEqual([
         {
-          handle: "c2",
-          name: "C2",
-          description: "Desc2",
-          numEmployees: 2,
-          logoUrl: "http://c2.img",
+            id: 1,
+            title: 'Conservator, furniture',
+            salary: 110000, 
+            equity: 0, 
+            companyHandle: 'c1'
         },
         {
-          handle: "c3",
-          name: "C3",
-          description: "Desc3",
-          numEmployees: 3,
-          logoUrl: "http://c3.img",
-        }
-      ]);
-    });
-  
-    test("works: filter by at most 2 employees and has c in name", async function () {
-      let jobs = await Job.findAll({name: 'c', maxEmployees: 2});
-      expect(jobs).toEqual([
-        {
-          handle: "c1",
-          name: "C1",
-          description: "Desc1",
-          numEmployees: 1,
-          logoUrl: "http://c1.img",
+            companyHandle: "c2",
+            equity: 1,
+            id: 2,
+            salary: 200000,
+            title: "Information officer"
         },
-        {
-          handle: "c2",
-          name: "C2",
-          description: "Desc2",
-          numEmployees: 2,
-          logoUrl: "http://c2.img",
-        }
       ]);
     });
-  
-    test("works: filter by 2 to 3 employees and has c in name", async function () {
-      let jobs = await Job.findAll({name: 'c', minEmployees: 2, maxEmployees: 3});
-      
-      expect(jobs).toEqual([
-        {
-          handle: "c2",
-          name: "C2",
-          description: "Desc2",
-          numEmployees: 2,
-          logoUrl: "http://c2.img",
-        },
-        {
-          handle: "c3",
-          name: "C3",
-          description: "Desc3",
-          numEmployees: 3,
-          logoUrl: "http://c3.img",
-        }
-      ]);
-    });
-  
+    
     test("works: finds nothing", async function () {
-      let jobs = await Job.findAll({name: 'pl', minEmployees: 2});
+      let jobs = await Job.findAll({title: 'awoioiwa2pl', minSalary: 2});
       expect(jobs).toEqual([
-        
+        'No Jobs Found'
       ]);
     });
 });

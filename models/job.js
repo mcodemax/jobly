@@ -86,12 +86,11 @@ class Job {
                         ${sqlWhereStr}  
                         ORDER BY title`;
 
-                      console.log(querySql, values)
     //in pg AS uses "" and WHERE uses ''
     const jobsRes = await db.query(querySql, values);
     const jobs = jobsRes.rows;
 
-    if (jobs.length === 0) throw new NotFoundError(`No jobs found`);
+    if (jobs.length === 0) return ['No Jobs Found'];
     
     jobs.forEach(job => {
       job.equity = Number(job.equity); 

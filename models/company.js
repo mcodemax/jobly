@@ -37,7 +37,7 @@ class Company {
           description,
           numEmployees,
           logoUrl,
-        ],
+        ]
     );
     const company = result.rows[0];
 
