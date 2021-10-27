@@ -167,9 +167,11 @@ class Job {
     const result = await db.query(querySql, [...values, id]);
     const job = result.rows[0];
     
+    if (!job) throw new NotFoundError(`No job: ${id}`);
+
     job.equity = Number(job.equity);
       
-    if (!job) throw new NotFoundError(`No job: ${id}`);
+    
 
     return job;
   }

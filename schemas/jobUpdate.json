@@ -12,11 +12,6 @@
             "equity": 0.12515
         }
     ],
-    "required": [
-        "title",
-        "salary",
-        "equity"
-    ],
     "properties": {
         "title": {
             "$id": "#/properties/title",

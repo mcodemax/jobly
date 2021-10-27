@@ -51,7 +51,7 @@ router.post("/", ensureAdmin, async function (req, res, next) {
  * Authorization required: none
  */
 
-router.get("/:name?/:minEmployees?/:maxEmployees?", async function (req, res, next) {
+router.get("/", async function (req, res, next) {
   try {
     const {name} = req.query;
     const minEmployees = req.query.minEmployees ? parseInt(req.query.minEmployees) : undefined;

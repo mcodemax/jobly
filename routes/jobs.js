@@ -127,7 +127,7 @@ router.patch("/:id", ensureAdmin, async function (req, res, next) {
       throw new BadRequestError(errs);
     }
 
-    const job = await job.update(req.params.id, req.body);
+    const job = await Job.update(req.params.id, req.body);
     return res.json({ job });
   } catch (err) {
     return next(err);
@@ -140,8 +140,8 @@ router.patch("/:id", ensureAdmin, async function (req, res, next) {
  */
 router.delete("/:id", ensureAdmin, async function (req, res, next) {
   try {
-    await Company.remove(req.params.id);
-    return res.json({ deleted: req.params.id });
+    await Job.remove(req.params.id);
+    return res.json({ deleted: Number(req.params.id) });
   } catch (err) {
     return next(err);
   }
