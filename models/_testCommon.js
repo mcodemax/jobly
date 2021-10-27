@@ -41,7 +41,7 @@ async function commonBeforeAll() {
 }
 
 async function commonBeforeEach() {
-  await db.query("BEGIN");
+  await db.query("BEGIN"); //start a transaction block
 }
 
 async function commonAfterEach() {

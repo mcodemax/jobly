@@ -6,7 +6,7 @@ const jsonschema = require("jsonschema");
 const express = require("express");
 
 const { BadRequestError, ExpressError } = require("../expressError");
-const { ensureLoggedIn, ensureAdmin } = require("../middleware/auth");
+const { ensureAdmin } = require("../middleware/auth");
 const Job = require("../models/job");
 
 const JobNewSchema = require("../schemas/jobNew.json");
@@ -14,7 +14,7 @@ const JobUpdateSchema = require("../schemas/jobUpdate.json");
 
 const router = new express.Router();
 
-const {seeIfObjKeysInArr, seeIfKeysInObj, compareKeys} = require("../helpers/sql")
+const {seeIfObjKeysInArr} = require("../helpers/sql")
 
 /** POST / { job } =>  { job }
  *
@@ -51,35 +51,36 @@ router.post("/", ensureAdmin, async function (req, res, next) {
  *
  * Authorization required: none
  */
-router.get("/:title?/:minSalary?/:hasEquity?", async function (req, res, next) {
+router.get("/", async function (req, res, next) {// example query str => ?title=construction&minSalary=55000&hasEquity=true
   try {
     const {title} = req.query;
     const minSalary = req.query.minSalary ? Number(req.query.minSalary) : undefined;
-    let hasEquity;
-	  const filterObj = {};
+    let {hasEquity} = req.query;
 
-    if(hasEquity && !(hasEquity.toLowerCase() === 'true' || hasEquity.toLowerCase() === 'false')) throw new BadRequestError(`hasEquity must be true or false if wanted`);
-    
-    if(req.query.hasEquity && (req.query.hasEquity.toLowerCase() === 'true' || req.query.hasEquity.toLowerCase() === 'false')){
-      hasEquity = req.query.hasEquity.toLowerCase();
-      
-      //hasEquity: if true, filter to jobs that provide a non-zero amount of equity. If false or not included in the filtering, list all jobs regardless of equity.
-      if(hasEquity === true) filterObj.hasEquity = hasEquity;
+    if(typeof hasEquity === 'string'){
+      hasEquity = hasEquity.toLocaleLowerCase();
+      if(hasEquity === 'true'){
+        hasEquity = true;
+      }else if(hasEquity === 'false'){
+        hasEquity = false;
+      }else{
+        throw new BadRequestError(`hasEquity must be true or false if wanted`);
+      }
     }
-      // example query str => ?title=construction&minSalary=55000&hasEquity=true
+
+      
       
     if(minSalary < 0){//test if minSalary undefined?
       throw new BadRequestError(`minSalary must be >= 0`);
     }
 
-
     if(!seeIfObjKeysInArr(req.query, ['title','minSalary','hasEquity'])){
-      throw new BadRequestError(`A key wasn't allowed here`);
+      throw new BadRequestError(`A key wasn't allowed here, only accepting 'title','minSalary','hasEquity'`);
     }
-
+    // console.log({title, minSalary, hasEquity})
     const jobs = await Job.findAll({title, minSalary, hasEquity});
-
-    if(jobs.length === 0) throw new ExpressError('Companies not found', 404)
+    
+    if(jobs.length === 0) throw new ExpressError('Jobs not found', 404)
     
     return res.json({ jobs });
   } catch (err) {

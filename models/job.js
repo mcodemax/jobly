@@ -64,8 +64,6 @@ class Job {
       }
     }
 
-    const obj = {poop: false}
-
     if(hasEquity && (hasEquity === true)){
       //if true, filter to jobs that provide a non-zero amount of equity. 
       if(values.length > 0){
@@ -81,10 +79,11 @@ class Job {
                             title,
                             salary,
                             equity,
-                            company_handle AS "companyHandle"
-                        FROM jobs
-                        ${sqlWhereStr}  
-                        ORDER BY title`;
+                            company_handle AS "companyHandle",
+                            companies.name AS "companyName"
+                        FROM jobs LEFT JOIN companies ON jobs.company_handle = companies.handle
+                        ${sqlWhereStr}
+                        `;
 
     //in pg AS uses "" and WHERE uses ''
     const jobsRes = await db.query(querySql, values);
@@ -105,7 +104,7 @@ class Job {
    **/
 
   static async get(id) {
-    const companyRes = await db.query(
+    const jobRes = await db.query(
           `SELECT id, 
                   title, 
                   salary, 
@@ -115,12 +114,25 @@ class Job {
            WHERE id = $1`,
         [id]);
 
-    const job = companyRes.rows[0];
+    const job = jobRes.rows[0];
 
     if (!job) throw new NotFoundError(`No job: ${id}`);
 
     job.equity = Number(job.equity);
     
+
+    const companiesRes = await db.query(
+          `SELECT handle,
+                  name,
+                  description,
+                  num_employees AS "numEmployees",
+                  logo_url AS "logoUrl"
+           FROM companies
+           WHERE handle = $1`, [job.companyHandle]);
+
+    delete job.companyHandle;
+    job.company = companiesRes.rows[0];
+
     return job;
   }
 

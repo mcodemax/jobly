@@ -24,10 +24,12 @@ describe("create", function () {
         equity: .512, 
         companyHandle: 'c3'
     };
-  
+    
     test("works", async function () {
       let job = await Job.create(newJob);
-      expect(job).toEqual(newJob);
+      const newJob2 = {...newJob};
+      console.log(job)
+      expect(job).toMatchObject(newJob);
     });
   
     test("bad request with nonexistant company", async function () {
@@ -59,7 +61,8 @@ describe("findAll", function () {
           title: 'Consulting civil engineer',
           salary: 60000, 
           equity: 0, 
-          companyHandle: 'c2'
+          companyHandle: 'c2',
+          companyName: 'C2'
         }
       ]);
     });
@@ -72,7 +75,8 @@ describe("findAll", function () {
             title: 'Information officer',
             salary: 200000, 
             equity: 1, 
-            companyHandle: 'c2'
+            companyHandle: 'c2',
+            companyName: 'C2'
         }
       ]);
     });
@@ -85,7 +89,8 @@ describe("findAll", function () {
             title: 'Information officer',
             salary: 200000, 
             equity: 1, 
-            companyHandle: 'c2'
+            companyHandle: 'c2',
+            companyName: 'C2'
         }
         ]);
     });
@@ -98,10 +103,12 @@ describe("findAll", function () {
             title: 'Conservator, furniture',
             salary: 110000, 
             equity: 0, 
-            companyHandle: 'c1'
+            companyHandle: 'c1',
+            companyName: 'C1'
         },
         {
             companyHandle: "c2",
+            companyName: 'C2',
             equity: 1,
             id: 2,
             salary: 200000,
@@ -121,23 +128,32 @@ describe("findAll", function () {
 /************************************** get */
 
 describe("get", function () {
+    const testJob = {
+      id: 1,
+      title: "Conservator, furniture",
+      salary: 110000,
+      equity: 0,
+      companyHandle: "c1"
+    }
+    testJob.company = {
+      description: "Desc1",
+      handle: "c1",
+      logoUrl: "http://c1.img",
+      name: "C1",
+      numEmployees: 1
+    }
+    delete testJob.companyHandle;
     test("works", async function () {
         let job = await Job.get(1);
-        expect(job).toEqual({
-        id: 1,
-        title: "Conservator, furniture",
-        salary: 110000,
-        equity: 0,
-        companyHandle: "c1"
-        });
+        expect(job).toMatchObject(testJob)
     });
 
     test("not found if no such job", async function () {
         try {
-        await Job.get(555);
-        fail();
+          await Job.get(556795);
+          fail();
         } catch (err) {
-        expect(err instanceof NotFoundError).toBeTruthy();
+          expect(err instanceof NotFoundError).toBeTruthy();
         }
     });
 });
@@ -238,5 +254,10 @@ describe("remove", function () {
       } catch (err) {
         expect(err instanceof NotFoundError).toBeTruthy();
       }
+    });
+
+    test('dummy', async () => {
+      let rez = await Job.findAll({});
+      console.log(rez);
     });
 });
