@@ -103,7 +103,7 @@ class User {
    **/
 
   static async findAll() {
-    const result = await db.query(
+    const users = await db.query(
           `SELECT username,
                   first_name AS "firstName",
                   last_name AS "lastName",
@@ -112,8 +112,53 @@ class User {
            FROM users
            ORDER BY username`,
     );
+    // SELECT users.username,
+    // first_name AS "firstName",
+    // last_name AS "lastName",
+    // email,
+    // is_admin AS "isAdmin",
+    // job_id
+    // FROM users LEFT JOIN applications ON users.username = applications.username
+    // ORDER BY username
 
-    return result.rows;
+
+    const userJobIds = await db.query(`
+          SELECT username, job_id AS "jobId"
+          FROM applications
+    `);
+
+    // for(let application of userJobIds.rows){
+    //   // for every app, append jobId to users
+
+    // }
+
+    const userNameDict = {};//usernames are unique so no conflicts
+    users.rows.forEach(user => { //add an empty arr to a username dictionary
+      //implemented to make everything O(n)
+      userNameDict[user.username] = [];
+    });
+
+    userJobIds.rows.forEach(jobUserPair => {
+      if(jobUserPair.username in userNameDict){
+        userNameDict[jobUserPair.username].push(jobUserPair.jobId);
+      }
+    });
+
+    users.rows.forEach(user => {
+      console.log(user)
+      if(userNameDict[user.username].length === 0){
+        userNameDict[user.username].push('No Jobs');
+      }
+    });
+
+    users.rows.forEach(user => { //this is to append all jobs onto each user applied to
+      user.jobs = userNameDict[user.username];
+      //implemented to make everything O(n)
+    });
+
+    console.log(users.rows)
+
+    return users.rows;
   }
 
   /** Given a username, return data about user.
@@ -136,9 +181,22 @@ class User {
         [username],
     );
 
+    const userApplications = await db.query(
+          `SELECT job_id AS "jobId"
+           FROM applications
+           WHERE username = $1`,
+        [username]
+    );
+
     const user = userRes.rows[0];
       
     if (!user) throw new NotFoundError(`No user: ${username}`);
+
+    if(userApplications.rows.length !== 0){
+      user.jobs = userApplications.rows.map(jobNum => jobNum.jobId);
+    }else{
+      user.jobs = ['No jobs'];
+    }
 
     return user;
   }
@@ -222,7 +280,7 @@ class User {
     return applied.jobId;
   }
 }
-//node -i -e "$(< yourScript.js)"
+//node -i -e "$(< user.js)"
 
 
 module.exports = User;
