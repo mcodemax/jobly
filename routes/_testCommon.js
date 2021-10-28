@@ -103,6 +103,9 @@ async function commonBeforeAll() {
   jobsArrIds.push(job.id)
   job = await Job.create(jobsArr[3]);
   jobsArrIds.push(job.id)
+
+  await User.apply("u1",jobsArrIds[0]);
+  await User.apply("u1",jobsArrIds[1]);
 }
 
 
