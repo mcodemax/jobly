@@ -117,5 +117,24 @@ router.delete("/:username", ensureAdminOrCorrectUser, async function (req, res, 
   }
 });
 
+/**
+ * POST /users/:username/jobs/:id 
+ * 
+ * allows user to apply for a job
+ * 
+ */
+router.post("/:username/jobs/:id", ensureAdminOrCorrectUser, async function (req, res, next) {
+  try {
+    const {username} = req.params;
+    let {id} = req.params;
+    if(Number.isInteger(Number(id))) id = parseInt(id);
+
+    const applicationJobId = await User.apply(username, id);//should throw error from apply() method is bad data passed in
+    
+    return res.status(201).json({ applied: applicationJobId });
+  } catch (err) {
+    return next(err);
+  }
+});
 
 module.exports = router;

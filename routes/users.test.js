@@ -328,3 +328,49 @@ describe("DELETE /users/:username", function () {
     expect(resp.statusCode).toEqual(404);
   });
 });
+
+/************************************** POST /users/:username/jobs/:id */
+
+describe("/users/:username/jobs/:id", function () {
+  test("doesn't work for unauth loggedin user", async function () {
+    const userName = 'u2';
+    const resp = await request(app)
+        .post(`/users/${userName}/jobs/${jobsArrIds[2]}`)
+        .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("works when user matches username in url applying for job", async function () {
+    const userName = 'u1';
+    const resp = await request(app)
+        .post(`/users/${userName}/jobs/${jobsArrIds[2]}`)
+        .set("authorization", `Bearer ${u1Token}`);
+    expect(resp.statusCode).toEqual(201);
+    expect(resp.body).toEqual({ applied: jobsArrIds[2] })
+  });
+
+  test("works when Admins apply for others", async function () {
+    const userName = 'u1';
+    const resp = await request(app)
+        .post(`/users/${userName}/jobs/${jobsArrIds[2]}`)
+        .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(201);
+    expect(resp.body).toEqual({ applied: jobsArrIds[2] });
+  });
+
+  test("doesn't work for anon users", async function () {
+    const userName = 'u2';
+    const resp = await request(app)
+        .post(`/users/${userName}/jobs/${jobsArrIds[2]}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+
+  test("not found if invalid data", async function () {
+    const userName = 'u1';
+    const resp = await request(app)
+        .post(`/users/poopy/jobs/5`)
+        .set("authorization", `Bearer ${adminToken}`);
+    expect(resp.statusCode).toEqual(404);
+  });
+});
