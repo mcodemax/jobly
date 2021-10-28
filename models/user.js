@@ -3,6 +3,7 @@
 const db = require("../db");
 const bcrypt = require("bcrypt");
 const { sqlForPartialUpdate } = require("../helpers/sql");
+const Job = require("./job")
 const {
   NotFoundError,
   BadRequestError,
@@ -136,7 +137,7 @@ class User {
     );
 
     const user = userRes.rows[0];
-      console.log(user)
+      
     if (!user) throw new NotFoundError(`No user: ${username}`);
 
     return user;
@@ -206,9 +207,22 @@ class User {
   }
 
   static async apply(username, jobId){
-    let result
+    await this.get(username); //throws err id user not exist
+    const jobResult = await Job.get(jobId); //throws err if jobId doesn't exist
+    
+    const result = await db.query(`INSERT
+                  INTO applications
+                  (username, job_id)
+                  VALUES ($1, $2)
+                  RETURNING username, job_id AS "jobId"`,
+              [username, jobId]);
+
+    const applied = result.rows[0];
+
+    return applied.jobId;
   }
 }
+//node -i -e "$(< yourScript.js)"
 
 
 module.exports = User;

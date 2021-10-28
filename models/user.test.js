@@ -228,3 +228,36 @@ describe("remove", function () {
     }
   });
 });
+
+/************************************** apply for jobs */
+
+describe("apply for jobs", function () {
+  test("works", async function () {
+    const jobId = 3;
+    const application = await User.apply("u1", jobId);
+    expect(application).toEqual(3);
+    const res = await db.query(
+        "SELECT * FROM applications WHERE job_id=$1", [jobId]);
+    expect(res.rows[0].job_id).toBe(3);
+
+  });
+
+  test("unauth if no such user", async function () {
+    try {
+      await User.apply("nope2", 3);
+      fail();
+    } catch (err) {
+      console.log(err)
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+
+  test("unauth if no jobId avail", async function () {
+    try {
+      await User.apply("u1", 5);
+      fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+});
