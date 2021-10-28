@@ -122,6 +122,8 @@ router.delete("/:username", ensureAdminOrCorrectUser, async function (req, res, 
  * 
  * allows user to apply for a job
  * 
+ * returns { applied: jobId }
+ * 
  */
 router.post("/:username/jobs/:id", ensureAdminOrCorrectUser, async function (req, res, next) {
   try {
